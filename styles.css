@@ -11,3 +11,5 @@
 @media(max-width:720px){.gallery-intro{align-items:start;flex-direction:column}.gallery-grid{grid-template-columns:1fr;grid-auto-rows:280px}.gallery-item:first-child{grid-column:span 1;grid-row:span 1}.gallery-caption{opacity:1}.lightbox{padding:15px}}
 .drive-folder-frame{display:block;width:100%;height:min(74vh,760px);min-height:580px;border:1px solid var(--line);background:var(--bg)}
 @media(max-width:720px){.drive-folder-frame{height:68vh;min-height:480px}}
+.navin{height:94px}.logo{width:210px;overflow:hidden}.mark{width:210px;height:58px;background-size:380px 380px;background-position:left center}
+@media(max-width:720px){.navin{height:74px}.logo{width:165px}.mark{width:165px;height:50px;background-size:310px 310px;background-position:left center}}
