@@ -66,7 +66,7 @@ function chip(label, href) {
 
 function driveImage(url) {
   const match = String(url || '').match(/\/d\/([^/]+)/);
-  return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : url;
+  return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200` : url;
 }
 
 function publicationVenueType(item) {
@@ -163,13 +163,14 @@ function renderPatents(items) {
 }
 
 function renderPeople(items) {
-  const data = items.filter(item => item['이름'] && !placeholder(item));
+  const data = items.filter(item => item['이름']);
   const root = document.getElementById('people-list'); root.replaceChildren();
   data.forEach(item => {
     const displayName = item['영문 이름'] || item['이름'];
     const article = document.createElement('article'); article.className = 'person';
     const photo = document.createElement('div'); photo.className = 'photo'; photo.textContent = (displayName || 'R')[0];
-    if (item['사진']) { const image = document.createElement('img'); image.src = driveImage(item['사진']); image.alt = `${displayName}, researcher`; image.loading = 'lazy'; image.onerror = () => image.remove(); photo.append(image); }
+    if (item['사진']) { const image = document.createElement('img'); image.src = driveImage(item['사진']); image.alt = `${displayName}, researcher`; image.loading = 'lazy'; image.referrerPolicy = 'no-referrer'; image.onerror = () => { image.remove(); photo.classList.add('is-fallback'); }; photo.append(image); }
+    else photo.classList.add('is-fallback');
     const body = document.createElement('div'); body.className = 'person-body';
     const name = document.createElement('h3'); name.textContent = displayName;
     const role = document.createElement('div'); role.className = 'role'; role.textContent = item['역할'] || 'Researcher';
@@ -183,12 +184,18 @@ function renderPeople(items) {
 
 function renderNews(items) {
   const data = items.filter(item => item['뉴스 제목']).sort((a, b) => dateValue(b['날짜']) - dateValue(a['날짜'])).slice(0, 5);
-  if (!data.length) return;
-  const featured = data[0], box = document.getElementById('featured-news');
-  box.querySelector('time').textContent = featured['날짜']; box.querySelector('h3').textContent = featured['뉴스 제목']; box.querySelector('p').textContent = featured['뉴스 내용'] || '';
-  if (featured['링크']) { box.style.cursor = 'pointer'; box.onclick = () => window.open(featured['링크'], '_blank', 'noopener'); }
   const root = document.getElementById('news-list'); root.replaceChildren();
-  data.slice(1).forEach(item => { const element = document.createElement(item['링크'] ? 'a' : 'div'); element.className = 'news-item'; if (item['링크']) { element.href = item['링크']; element.target = '_blank'; element.rel = 'noopener noreferrer'; } const time = document.createElement('time'); time.textContent = item['날짜']; const title = document.createElement('b'); title.textContent = item['뉴스 제목']; element.append(time, title); root.append(element); });
+  data.forEach(item => {
+    const article = document.createElement('article'); article.className = 'news-card';
+    const time = document.createElement('time'); time.textContent = item['날짜'] || '';
+    const title = document.createElement('h3'); title.textContent = item['뉴스 제목'];
+    const description = document.createElement('p'); description.textContent = item['뉴스 내용'] || '';
+    article.append(time, title, description);
+    const detail = chip('Read more →', item['링크']); if (detail) article.append(detail);
+    root.append(article);
+  });
+  if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No news is available.'; root.append(empty); }
+  status('news-status', `${data.length} news item${data.length === 1 ? '' : 's'}`);
 }
 
 function bindFilters() {
@@ -207,6 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
   bindFilters();
   const kind = document.body.dataset.page;
   if (kind && kind !== 'home') loadPage(kind);
-  if (document.getElementById('featured-news')) loadPage('news');
+  if (document.getElementById('news-list')) loadPage('news');
   document.querySelector('.hamb')?.addEventListener('click', () => document.querySelector('.menu')?.classList.toggle('open'));
 });
