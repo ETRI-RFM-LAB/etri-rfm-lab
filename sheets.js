@@ -1,6 +1,6 @@
 const SHEET_CONFIG = {
   id: '1R_IC9N-0nNemXAXpodxzoqkVABEA8s9qL46WLSaO5yM',
-  tabs: { publications: '논문', patents: '특허', people: '인물', news: '뉴스' }
+  tabs: { publications: '논문', patents: '특허', people: '인물', news: '뉴스', gallery: '갤러리' }
 };
 
 const archive = { publications: [], patents: [], pubFilter: 'all', patentFilter: 'all' };
@@ -64,9 +64,32 @@ function chip(label, href) {
   return anchor;
 }
 
-function driveImage(url) {
-  const match = String(url || '').match(/\/d\/([^/]+)/);
-  return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200` : url;
+function driveFileId(url) {
+  const value = String(url || '').trim();
+  return value.match(/\/d\/([^/?#]+)/)?.[1] || value.match(/\/folders\/([^/?#]+)/)?.[1] || value.match(/[?&]id=([^&#]+)/)?.[1] || '';
+}
+
+function driveImageCandidates(url, size = 'w1200') {
+  const id = driveFileId(url);
+  if (!id) return url ? [url] : [];
+  return [
+    `https://lh3.googleusercontent.com/d/${id}=${size}`,
+    `https://drive.google.com/thumbnail?id=${id}&sz=${size}`,
+    `https://drive.google.com/uc?export=view&id=${id}`
+  ];
+}
+
+function loadDriveImage(image, url, size = 'w1200', onFailure = () => {}) {
+  const candidates = driveImageCandidates(url, size);
+  let index = 0;
+  image.referrerPolicy = 'no-referrer';
+  image.onerror = () => {
+    index += 1;
+    if (index < candidates.length) image.src = candidates[index];
+    else onFailure();
+  };
+  if (candidates.length) image.src = candidates[0];
+  else onFailure();
 }
 
 function publicationVenueType(item) {
@@ -169,7 +192,7 @@ function renderPeople(items) {
     const displayName = item['영문 이름'] || item['이름'];
     const article = document.createElement('article'); article.className = 'person';
     const photo = document.createElement('div'); photo.className = 'photo'; photo.textContent = (displayName || 'R')[0];
-    if (item['사진']) { const image = document.createElement('img'); image.src = driveImage(item['사진']); image.alt = `${displayName}, researcher`; image.loading = 'lazy'; image.referrerPolicy = 'no-referrer'; image.onerror = () => { image.remove(); photo.classList.add('is-fallback'); }; photo.append(image); }
+    if (item['사진']) { const image = document.createElement('img'); image.alt = `${displayName}, researcher`; image.loading = 'lazy'; loadDriveImage(image, item['사진'], 'w1200', () => { image.remove(); photo.classList.add('is-fallback'); }); photo.append(image); }
     else photo.classList.add('is-fallback');
     const body = document.createElement('div'); body.className = 'person-body';
     const name = document.createElement('h3'); name.textContent = displayName;
@@ -213,7 +236,9 @@ async function loadPage(kind) {
 document.addEventListener('DOMContentLoaded', () => {
   bindFilters();
   const kind = document.body.dataset.page;
-  if (kind && kind !== 'home') loadPage(kind);
+  if (['publications', 'patents', 'people'].includes(kind)) loadPage(kind);
   if (document.getElementById('news-list')) loadPage('news');
+  const menu = document.querySelector('.menu');
+  if (menu && !menu.querySelector('a[href="gallery.html"]')) { const gallery = document.createElement('a'); gallery.href = 'gallery.html'; gallery.textContent = 'Gallery'; if (kind === 'gallery') gallery.className = 'active'; menu.append(gallery); }
   document.querySelector('.hamb')?.addEventListener('click', () => document.querySelector('.menu')?.classList.toggle('open'));
 });
