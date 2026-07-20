@@ -99,13 +99,20 @@ function youtubeId(url) {
 
 function addThumbnail(root, url, alt) {
   if (!url) return false;
-  const media = document.createElement('div'); media.className = 'card-thumb';
-  const image = document.createElement('img'); image.alt = alt; image.loading = 'lazy';
   const videoId = youtubeId(url);
+  const media = document.createElement(videoId ? 'button' : 'div'); media.className = 'card-thumb';
+  if (videoId) { media.type = 'button'; media.setAttribute('aria-label', `Play video: ${alt}`); }
+  const image = document.createElement('img'); image.alt = alt; image.loading = 'lazy';
   if (videoId) {
     image.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
     image.onerror = () => media.remove();
     media.classList.add('is-video');
+    media.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+      frame.title = alt; frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; frame.allowFullscreen = true;
+      media.classList.add('is-playing'); media.replaceChildren(frame);
+    }, { once: true });
   } else {
     loadDriveImage(image, url, 'w1200', () => media.remove());
   }
@@ -150,7 +157,10 @@ function drawPublications() {
     body.append(title, authors, venue, summary);
     const links = document.createElement('div'); links.className = 'chips';
     [chip('GitHub', item['깃허브 주소']), chip('arXiv', item['arxiv주소']), chip('Media', item['이미지/동영상 주소'])].filter(Boolean).forEach(a => links.append(a));
-    article.append(year, body, links); root.append(article);
+    article.append(year);
+    const mediaUrl = item['이미지/동영상 주소'] || item['동영상/이미지'] || '';
+    if (addThumbnail(article, mediaUrl, item['논문 제목'])) article.classList.add('has-media');
+    article.append(body, links); root.append(article);
   });
   if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No publications match your search.'; root.append(empty); }
   document.getElementById('publication-count').textContent = `${data.length} result${data.length === 1 ? '' : 's'}`;
@@ -247,30 +257,6 @@ function renderNews(items) {
   status('news-status', `${data.length} news item${data.length === 1 ? '' : 's'}`);
 }
 
-function renderHomePublications(items) {
-  const data = items.filter(item => item['논문 제목'] && !placeholder(item) && item['제출 상태'] === 'Accept')
-    .sort((a, b) => Number(b['연도'] || 0) - Number(a['연도'] || 0)).slice(0, 3);
-  const root = document.getElementById('home-publication-list'); root.replaceChildren();
-  data.forEach(item => {
-    const article = document.createElement('article'); article.className = 'home-pub-card';
-    const mediaUrl = item['이미지/동영상 주소'] || item['동영상/이미지'] || '';
-    if (addThumbnail(article, mediaUrl, item['논문 제목'])) article.classList.add('has-thumb');
-    const body = document.createElement('div'); body.className = 'home-pub-body';
-    const meta = document.createElement('div'); meta.className = 'home-pub-meta'; meta.textContent = `${item['연도'] || ''}${item['학회/저널 명'] ? ' · ' + item['학회/저널 명'] : ''}`;
-    const title = document.createElement('h3'); title.textContent = item['영문 논문 제목'] || item['논문 제목'];
-    const summary = document.createElement('p'); summary.textContent = item['한줄요약(영문)'] || '';
-    const detail = document.createElement('a'); detail.className = 'chip'; detail.href = 'publications.html'; detail.textContent = 'Publication details →';
-    body.append(meta, title, summary, detail); article.append(body); root.append(article);
-  });
-  if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No publications are available.'; root.append(empty); }
-  status('home-publication-status', `${data.length} recent publication${data.length === 1 ? '' : 's'}`);
-}
-
-async function loadHomePublications() {
-  try { renderHomePublications(await getTab(SHEET_CONFIG.tabs.publications)); }
-  catch (error) { console.error(error); status('home-publication-status', 'Unable to load publications.'); }
-}
-
 function bindFilters() {
   document.getElementById('publication-search')?.addEventListener('input', drawPublications);
   document.querySelectorAll('[data-pub-filter]').forEach(button => button.addEventListener('click', () => { archive.pubFilter = button.dataset.pubFilter; document.querySelectorAll('[data-pub-filter]').forEach(b => b.classList.toggle('active', b === button)); drawPublications(); }));
@@ -288,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const kind = document.body.dataset.page;
   if (['publications', 'patents', 'people'].includes(kind)) loadPage(kind);
   if (document.getElementById('news-list')) loadPage('news');
-  if (document.getElementById('home-publication-list')) loadHomePublications();
   const menu = document.querySelector('.menu');
   if (menu && !menu.querySelector('a[href="gallery.html"]')) { const gallery = document.createElement('a'); gallery.href = 'gallery.html'; gallery.textContent = 'Gallery'; if (kind === 'gallery') gallery.className = 'active'; menu.append(gallery); }
   document.querySelector('.hamb')?.addEventListener('click', () => document.querySelector('.menu')?.classList.toggle('open'));
