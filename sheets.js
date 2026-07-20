@@ -92,6 +92,26 @@ function loadDriveImage(image, url, size = 'w1200', onFailure = () => {}) {
   else onFailure();
 }
 
+function youtubeId(url) {
+  const value = String(url || '');
+  return value.match(/[?&]v=([^&#]+)/)?.[1] || value.match(/youtu\.be\/([^?&#/]+)/)?.[1] || value.match(/youtube\.com\/shorts\/([^?&#/]+)/)?.[1] || '';
+}
+
+function addThumbnail(root, url, alt) {
+  if (!url) return false;
+  const media = document.createElement('div'); media.className = 'card-thumb';
+  const image = document.createElement('img'); image.alt = alt; image.loading = 'lazy';
+  const videoId = youtubeId(url);
+  if (videoId) {
+    image.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    image.onerror = () => media.remove();
+    media.classList.add('is-video');
+  } else {
+    loadDriveImage(image, url, 'w1200', () => media.remove());
+  }
+  media.append(image); root.append(media); return true;
+}
+
 function publicationVenueType(item) {
   const type = normalize(item['학회/저널']);
   if (type.includes('저널') || type.includes('journal')) return 'journal';
@@ -197,10 +217,12 @@ function renderPeople(items) {
     const body = document.createElement('div'); body.className = 'person-body';
     const name = document.createElement('h3'); name.textContent = displayName;
     const role = document.createElement('div'); role.className = 'role'; role.textContent = item['역할'] || 'Researcher';
+    const email = item['이메일'] ? document.createElement('a') : null;
+    if (email) { email.className = 'person-email'; email.href = `mailto:${item['이메일']}`; email.textContent = item['이메일']; }
     const field = document.createElement('div'); field.className = 'field'; field.textContent = item['연구 분야'] || '';
     const links = document.createElement('div'); links.className = 'chips';
-    [chip('Email', item['이메일'] ? `mailto:${item['이메일']}` : ''), chip('Homepage', item['개인 홈페이지']), chip('Scholar', item['google scholar'])].filter(Boolean).forEach(a => links.append(a));
-    body.append(name, role, field, links); article.append(photo, body); root.append(article);
+    [chip('Homepage', item['개인 홈페이지']), chip('Scholar', item['google scholar'])].filter(Boolean).forEach(a => links.append(a));
+    body.append(name, role); if (email) body.append(email); body.append(field, links); article.append(photo, body); root.append(article);
   });
   status('page-status', `${data.length} researchers`);
 }
@@ -210,15 +232,43 @@ function renderNews(items) {
   const root = document.getElementById('news-list'); root.replaceChildren();
   data.forEach(item => {
     const article = document.createElement('article'); article.className = 'news-card';
+    const mediaUrl = item['동영상/이미지'] || item['이미지/동영상'] || item['이미지'];
+    if (addThumbnail(article, mediaUrl, item['뉴스 제목'])) article.classList.add('has-thumb');
+    const body = document.createElement('div'); body.className = 'news-card-body';
     const time = document.createElement('time'); time.textContent = item['날짜'] || '';
     const title = document.createElement('h3'); title.textContent = item['뉴스 제목'];
     const description = document.createElement('p'); description.textContent = item['뉴스 내용'] || '';
-    article.append(time, title, description);
-    const detail = chip('Read more →', item['링크']); if (detail) article.append(detail);
+    body.append(time, title, description);
+    const detail = chip('Read more →', item['링크']); if (detail) body.append(detail);
+    article.append(body);
     root.append(article);
   });
   if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No news is available.'; root.append(empty); }
   status('news-status', `${data.length} news item${data.length === 1 ? '' : 's'}`);
+}
+
+function renderHomePublications(items) {
+  const data = items.filter(item => item['논문 제목'] && !placeholder(item) && item['제출 상태'] === 'Accept')
+    .sort((a, b) => Number(b['연도'] || 0) - Number(a['연도'] || 0)).slice(0, 3);
+  const root = document.getElementById('home-publication-list'); root.replaceChildren();
+  data.forEach(item => {
+    const article = document.createElement('article'); article.className = 'home-pub-card';
+    const mediaUrl = item['이미지/동영상 주소'] || item['동영상/이미지'] || '';
+    if (addThumbnail(article, mediaUrl, item['논문 제목'])) article.classList.add('has-thumb');
+    const body = document.createElement('div'); body.className = 'home-pub-body';
+    const meta = document.createElement('div'); meta.className = 'home-pub-meta'; meta.textContent = `${item['연도'] || ''}${item['학회/저널 명'] ? ' · ' + item['학회/저널 명'] : ''}`;
+    const title = document.createElement('h3'); title.textContent = item['영문 논문 제목'] || item['논문 제목'];
+    const summary = document.createElement('p'); summary.textContent = item['한줄요약(영문)'] || '';
+    const detail = document.createElement('a'); detail.className = 'chip'; detail.href = 'publications.html'; detail.textContent = 'Publication details →';
+    body.append(meta, title, summary, detail); article.append(body); root.append(article);
+  });
+  if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No publications are available.'; root.append(empty); }
+  status('home-publication-status', `${data.length} recent publication${data.length === 1 ? '' : 's'}`);
+}
+
+async function loadHomePublications() {
+  try { renderHomePublications(await getTab(SHEET_CONFIG.tabs.publications)); }
+  catch (error) { console.error(error); status('home-publication-status', 'Unable to load publications.'); }
 }
 
 function bindFilters() {
@@ -238,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const kind = document.body.dataset.page;
   if (['publications', 'patents', 'people'].includes(kind)) loadPage(kind);
   if (document.getElementById('news-list')) loadPage('news');
+  if (document.getElementById('home-publication-list')) loadHomePublications();
   const menu = document.querySelector('.menu');
   if (menu && !menu.querySelector('a[href="gallery.html"]')) { const gallery = document.createElement('a'); gallery.href = 'gallery.html'; gallery.textContent = 'Gallery'; if (kind === 'gallery') gallery.className = 'active'; menu.append(gallery); }
   document.querySelector('.hamb')?.addEventListener('click', () => document.querySelector('.menu')?.classList.toggle('open'));
