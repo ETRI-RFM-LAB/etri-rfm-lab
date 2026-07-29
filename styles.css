@@ -58,11 +58,12 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 
 /* Compact publication resource buttons. */
 .pub .chips{align-self:start;align-items:center;justify-content:flex-end}
-.pub .chip{height:34px;padding:0 13px 0 8px;gap:7px;border-color:#d7e0eb;border-radius:999px;background:#fff;box-shadow:0 2px 8px rgba(20,41,77,.06);white-space:nowrap;transition:border-color .18s,background .18s,color .18s,transform .18s}
-.pub .chip:before{display:grid;width:20px;height:20px;flex:0 0 20px;place-items:center;border-radius:50%;background:#e9eff7;color:#365678;font-size:8px;font-weight:900;letter-spacing:-.2px}
-.pub .chip-github:before{content:"GH";background:#24292f;color:#fff}
-.pub .chip-arxiv:before{content:"AX";background:#b31b1b;color:#fff}
-.pub .chip-media:before{content:"▶";background:var(--orange);color:#fff;font-size:9px;padding-left:1px}
+.pub .chip{height:30px;padding:0 11px 0 9px;gap:6px;border-color:#ccd7e5;border-radius:6px;background:#fff;box-shadow:0 1px 4px rgba(20,41,77,.05);white-space:nowrap;transition:border-color .18s,background .18s,color .18s,transform .18s}
+.pub .chip-icon{display:grid;width:15px;height:15px;flex:0 0 15px;place-items:center;color:#53657a}
+.pub .chip-icon svg{display:block;width:15px;height:15px;fill:currentColor}
+.pub .chip-github .chip-icon{color:#24292f}
+.pub .chip-arxiv .chip-icon{color:#b31b1b}
+.pub .chip-media .chip-icon{color:var(--orange)}
 .pub .chip:hover{border-color:var(--blue);background:#f7faff;color:var(--blue);transform:translateY(-1px);box-shadow:0 5px 13px rgba(20,41,77,.1)}
 @media(max-width:720px){.pub .chips{justify-content:flex-start}}
 
@@ -71,3 +72,9 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 @media(max-width:1100px){.people{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:900px){.people{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.people{grid-template-columns:1fr}}
+
+/* Compact, bordered researcher cards. */
+.people{gap:16px;align-items:start}
+.person{border:1px solid #d5dfeb;border-radius:8px;box-shadow:0 3px 12px rgba(20,41,77,.05)}
+.person .photo{aspect-ratio:4/3;padding:8px;border-bottom:1px solid #dbe3ef;background:#f7f9fc}
+.person .person-body{min-height:190px;padding:18px}

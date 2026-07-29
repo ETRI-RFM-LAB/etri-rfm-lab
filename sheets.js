@@ -61,7 +61,18 @@ function chip(label, href) {
   if (!href) return null;
   const anchor = document.createElement('a');
   const kind = label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  anchor.className = `chip chip-${kind}`; anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.textContent = label;
+  anchor.className = `chip chip-${kind}`; anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+  const icons = {
+    github: '<path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>',
+    arxiv: '<path d="M7.4 3h6.2l3.9 6.75L13.6 16.5H7.4L3.5 9.75 7.4 3Zm1.15 2-2.74 4.75 2.74 4.75h3.9l2.74-4.75L12.45 5h-3.9Zm.65 2.1h1.7l3.1 5.8h-1.8l-.62-1.28H8.42L7.8 12.9H6l3.2-5.8Zm.02 3.08h1.56L10 8.57l-.78 1.61Z"/>',
+    media: '<path d="M8 5.7v12.6L18 12 8 5.7Z"/>'
+  };
+  if (icons[kind]) {
+    const icon = document.createElement('span'); icon.className = 'chip-icon'; icon.setAttribute('aria-hidden', 'true');
+    icon.innerHTML = `<svg viewBox="0 0 24 24" focusable="false">${icons[kind]}</svg>`;
+    anchor.append(icon);
+  }
+  anchor.append(document.createTextNode(label));
   return anchor;
 }
 
