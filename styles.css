@@ -53,3 +53,5 @@ body[data-page="home"] .head h2{font-size:36px;letter-spacing:-.8px}
 body[data-page="home"] .news-cards{gap:20px}
 body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(20,41,77,.045)}
 @media(max-width:720px){body[data-page="home"] .navin{height:74px}body[data-page="home"] .hero{min-height:500px}body[data-page="home"] .hero .wrap{padding-top:76px}body[data-page="home"] .hero h1{font-size:43px;letter-spacing:-2px}body[data-page="home"] .hero p{font-size:15px}body[data-page="home"] .quick-grid{grid-template-columns:1fr}body[data-page="home"] .quick a{border-right:0;border-bottom:1px solid var(--line)}body[data-page="home"] .about{gap:42px}body[data-page="home"] .flow{min-height:0;padding:25px}body[data-page="home"] .section{padding:64px 0}}
+/* Keep researcher portraits fully visible without cropping. */
+.person .photo img{object-fit:contain;object-position:center}
