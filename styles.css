@@ -81,8 +81,8 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 
 /* Half-size researcher cards; portraits remain fully visible and proportional. */
 .person{width:100%;max-width:220px;justify-self:center}
-.person .photo{height:145px;aspect-ratio:auto;padding:6px}
-.person .photo img{object-fit:contain;object-position:center}
+.person .photo{height:220px;aspect-ratio:auto;padding:6px}
+.person .photo img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center}
 .person .person-body{min-height:0;padding:14px}
 .person h3{font-size:17px;line-height:1.3}
 .person .role{margin:5px 0 9px;font-size:10px}
