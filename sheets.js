@@ -60,7 +60,8 @@ function status(id, message = '') { const element = document.getElementById(id);
 function chip(label, href) {
   if (!href) return null;
   const anchor = document.createElement('a');
-  anchor.className = 'chip'; anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.textContent = label;
+  const kind = label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  anchor.className = `chip chip-${kind}`; anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.textContent = label;
   return anchor;
 }
 

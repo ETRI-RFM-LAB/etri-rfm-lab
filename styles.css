@@ -55,3 +55,13 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 @media(max-width:720px){body[data-page="home"] .navin{height:74px}body[data-page="home"] .hero{min-height:500px}body[data-page="home"] .hero .wrap{padding-top:76px}body[data-page="home"] .hero h1{font-size:43px;letter-spacing:-2px}body[data-page="home"] .hero p{font-size:15px}body[data-page="home"] .quick-grid{grid-template-columns:1fr}body[data-page="home"] .quick a{border-right:0;border-bottom:1px solid var(--line)}body[data-page="home"] .about{gap:42px}body[data-page="home"] .flow{min-height:0;padding:25px}body[data-page="home"] .section{padding:64px 0}}
 /* Keep researcher portraits fully visible without cropping. */
 .person .photo img{object-fit:contain;object-position:center}
+
+/* Compact publication resource buttons. */
+.pub .chips{align-self:start;align-items:center;justify-content:flex-end}
+.pub .chip{height:34px;padding:0 13px 0 8px;gap:7px;border-color:#d7e0eb;border-radius:999px;background:#fff;box-shadow:0 2px 8px rgba(20,41,77,.06);white-space:nowrap;transition:border-color .18s,background .18s,color .18s,transform .18s}
+.pub .chip:before{display:grid;width:20px;height:20px;flex:0 0 20px;place-items:center;border-radius:50%;background:#e9eff7;color:#365678;font-size:8px;font-weight:900;letter-spacing:-.2px}
+.pub .chip-github:before{content:"GH";background:#24292f;color:#fff}
+.pub .chip-arxiv:before{content:"AX";background:#b31b1b;color:#fff}
+.pub .chip-media:before{content:"▶";background:var(--orange);color:#fff;font-size:9px;padding-left:1px}
+.pub .chip:hover{border-color:var(--blue);background:#f7faff;color:var(--blue);transform:translateY(-1px);box-shadow:0 5px 13px rgba(20,41,77,.1)}
+@media(max-width:720px){.pub .chips{justify-content:flex-start}}
