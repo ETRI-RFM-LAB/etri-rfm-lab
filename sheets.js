@@ -57,21 +57,29 @@ function normalize(value) { return String(value || '').toLowerCase().replace(/\s
 function includesQuery(item, fields, query) { return !query || fields.some(field => normalize(item[field]).includes(query)); }
 function status(id, message = '') { const element = document.getElementById(id); if (element) element.textContent = message; }
 
+const LINK_ICONS = {
+  github: '<path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>',
+  arxiv: '<path d="M7.4 3h6.2l3.9 6.75L13.6 16.5H7.4L3.5 9.75 7.4 3Zm1.15 2-2.74 4.75 2.74 4.75h3.9l2.74-4.75L12.45 5h-3.9Zm.65 2.1h1.7l3.1 5.8h-1.8l-.62-1.28H8.42L7.8 12.9H6l3.2-5.8Zm.02 3.08h1.56L10 8.57l-.78 1.61Z"/>',
+  media: '<path d="M8 5.7v12.6L18 12 8 5.7Z"/>',
+  homepage: '<path d="M12 3 2.8 10.5l1.3 1.6L5.5 11v9h5v-5h3v5h5v-9l1.4 1.1 1.3-1.6L12 3Zm4.5 15h-1v-5h-7v5h-1V9.4l4.5-3.7 4.5 3.7V18Z"/>',
+  scholar: '<path d="m12 3-10 5 4 2v5.5C6 17.4 8.7 19 12 19s6-1.6 6-3.5V10l2-1v7h2V8L12 3Zm4 12.5c-.2.5-1.7 1.5-4 1.5s-3.8-1-4-1.5V11l4 2 4-2v4.5ZM12 10.8 6.4 8 12 5.2 17.6 8 12 10.8Z"/>',
+  email: '<path d="M3 5h18v14H3V5Zm2 2v.5l7 4.8 7-4.8V7H5Zm14 10V9.9l-7 4.8-7-4.8V17h14Z"/>'
+};
+
+function linkIcon(kind) {
+  if (!LINK_ICONS[kind]) return null;
+  const icon = document.createElement('span'); icon.className = 'chip-icon'; icon.setAttribute('aria-hidden', 'true');
+  icon.innerHTML = `<svg viewBox="0 0 24 24" focusable="false">${LINK_ICONS[kind]}</svg>`;
+  return icon;
+}
+
 function chip(label, href) {
   if (!href) return null;
   const anchor = document.createElement('a');
   const kind = label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   anchor.className = `chip chip-${kind}`; anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
-  const icons = {
-    github: '<path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>',
-    arxiv: '<path d="M7.4 3h6.2l3.9 6.75L13.6 16.5H7.4L3.5 9.75 7.4 3Zm1.15 2-2.74 4.75 2.74 4.75h3.9l2.74-4.75L12.45 5h-3.9Zm.65 2.1h1.7l3.1 5.8h-1.8l-.62-1.28H8.42L7.8 12.9H6l3.2-5.8Zm.02 3.08h1.56L10 8.57l-.78 1.61Z"/>',
-    media: '<path d="M8 5.7v12.6L18 12 8 5.7Z"/>'
-  };
-  if (icons[kind]) {
-    const icon = document.createElement('span'); icon.className = 'chip-icon'; icon.setAttribute('aria-hidden', 'true');
-    icon.innerHTML = `<svg viewBox="0 0 24 24" focusable="false">${icons[kind]}</svg>`;
-    anchor.append(icon);
-  }
+  const icon = linkIcon(kind);
+  if (icon) anchor.append(icon);
   anchor.append(document.createTextNode(label));
   return anchor;
 }
@@ -248,7 +256,10 @@ function renderPeople(items) {
     const name = document.createElement('h3'); name.textContent = displayName;
     const role = document.createElement('div'); role.className = 'role'; role.textContent = item['역할'] || 'Researcher';
     const email = item['이메일'] ? document.createElement('a') : null;
-    if (email) { email.className = 'person-email'; email.href = `mailto:${item['이메일']}`; email.textContent = item['이메일']; }
+    if (email) {
+      email.className = 'person-email'; email.href = `mailto:${item['이메일']}`;
+      email.append(linkIcon('email'), document.createTextNode(item['이메일']));
+    }
     const field = document.createElement('div'); field.className = 'field'; field.textContent = item['연구 분야'] || '';
     const links = document.createElement('div'); links.className = 'chips';
     [chip('Homepage', item['개인 홈페이지']), chip('Scholar', item['google scholar'])].filter(Boolean).forEach(a => links.append(a));

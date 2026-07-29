@@ -78,3 +78,17 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 .person{border:1px solid #d5dfeb;border-radius:8px;box-shadow:0 3px 12px rgba(20,41,77,.05)}
 .person .photo{aspect-ratio:4/3;padding:8px;border-bottom:1px solid #dbe3ef;background:#f7f9fc}
 .person .person-body{min-height:190px;padding:18px}
+
+/* Half-size researcher cards; portraits remain fully visible and proportional. */
+.person{width:100%;max-width:220px;justify-self:center}
+.person .photo{height:145px;aspect-ratio:auto;padding:6px}
+.person .photo img{object-fit:contain;object-position:center}
+.person .person-body{min-height:0;padding:14px}
+.person h3{font-size:17px;line-height:1.3}
+.person .role{margin:5px 0 9px;font-size:10px}
+.person .field{min-height:0;margin-bottom:10px;font-size:11px;line-height:1.45}
+.person .chips{gap:5px}
+.person .chip{align-items:center;padding:4px 7px;gap:4px;border-radius:5px;font-size:9px}
+.person .chip-icon,.person-email .chip-icon{display:grid;width:13px;height:13px;flex:0 0 13px;place-items:center}
+.person .chip-icon svg,.person-email .chip-icon svg{display:block;width:13px;height:13px;fill:currentColor}
+.person-email{display:flex;align-items:center;gap:5px;margin:-3px 0 10px;font-size:10px}
