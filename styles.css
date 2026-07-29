@@ -65,3 +65,9 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 .pub .chip-media:before{content:"▶";background:var(--orange);color:#fff;font-size:9px;padding-left:1px}
 .pub .chip:hover{border-color:var(--blue);background:#f7faff;color:var(--blue);transform:translateY(-1px);box-shadow:0 5px 13px rgba(20,41,77,.1)}
 @media(max-width:720px){.pub .chips{justify-content:flex-start}}
+
+/* Four-column researcher grid with responsive fallbacks. */
+.people{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1100px){.people{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.people{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.people{grid-template-columns:1fr}}
