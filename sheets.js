@@ -221,9 +221,17 @@ function renderPeople(items) {
   data.forEach(item => {
     const displayName = item['영문 이름'] || item['이름'];
     const article = document.createElement('article'); article.className = 'person';
-    const photo = document.createElement('div'); photo.className = 'photo'; photo.textContent = (displayName || 'R')[0];
-    if (item['사진']) { const image = document.createElement('img'); image.alt = `${displayName}, researcher`; image.loading = 'lazy'; loadDriveImage(image, item['사진'], 'w1200', () => { image.remove(); photo.classList.add('is-fallback'); }); photo.append(image); }
-    else photo.classList.add('is-fallback');
+    const photo = document.createElement('div'); photo.className = 'photo';
+    const initial = (displayName || 'R')[0];
+    if (item['사진']) {
+      const image = document.createElement('img'); image.alt = `${displayName}, researcher`; image.loading = 'lazy';
+      loadDriveImage(image, item['사진'], 'w1200', () => {
+        image.remove(); photo.textContent = initial; photo.classList.add('is-fallback');
+      });
+      photo.append(image);
+    } else {
+      photo.textContent = initial; photo.classList.add('is-fallback');
+    }
     const body = document.createElement('div'); body.className = 'person-body';
     const name = document.createElement('h3'); name.textContent = displayName;
     const role = document.createElement('div'); role.className = 'role'; role.textContent = item['역할'] || 'Researcher';
