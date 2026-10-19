@@ -92,3 +92,7 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 .person .chip-icon,.person-email .chip-icon{display:grid;width:13px;height:13px;flex:0 0 13px;place-items:center}
 .person .chip-icon svg,.person-email .chip-icon svg{display:block;width:13px;height:13px;fill:currentColor}
 .person-email{display:flex;align-items:center;gap:5px;margin:-3px 0 10px;font-size:10px}
+
+/* Home video */
+.video-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:24px;align-items:stretch}.video-frame{position:relative;aspect-ratio:16/9;background:#000;box-shadow:0 15px 40px rgba(20,41,77,.14)}.video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}.yt-channel{display:flex;flex-direction:column;padding:30px;border:1px solid var(--line);background:#fff;transition:.2s}.yt-channel:hover{border-color:#ee5b02;transform:translateY(-3px);box-shadow:0 12px 28px rgba(20,41,77,.1)}.yt-icon{display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:#ff0000;color:#fff;margin-bottom:20px}.yt-channel small{color:var(--blue);font-size:11px;font-weight:800;letter-spacing:2px}.yt-channel b{display:block;margin:6px 0 8px;color:var(--navy);font-size:24px}.yt-channel p{margin:0 0 20px;color:var(--muted);font-size:14px}.yt-channel .chip{align-self:flex-start;margin-top:auto}.footer a:hover{color:#fff}
+@media(max-width:900px){.video-grid{grid-template-columns:1fr}}
