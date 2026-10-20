@@ -235,6 +235,11 @@ function renderPatents(items) {
   drawPatents();
 }
 
+const SILHOUETTE = '<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="44" r="22"/><path d="M18 112c0-24 19-40 42-40s42 16 42 40z"/></svg>';
+function setSilhouette(photo) {
+  photo.innerHTML = SILHOUETTE; photo.classList.add('is-fallback');
+}
+
 function renderPeople(items) {
   const data = items.filter(item => item['이름']);
   const root = document.getElementById('people-list'); root.replaceChildren();
@@ -242,15 +247,14 @@ function renderPeople(items) {
     const displayName = item['영문 이름'] || item['이름'];
     const article = document.createElement('article'); article.className = 'person';
     const photo = document.createElement('div'); photo.className = 'photo';
-    const initial = (displayName || 'R')[0];
     if (item['사진']) {
       const image = document.createElement('img'); image.alt = `${displayName}, researcher`; image.loading = 'lazy';
       loadDriveImage(image, item['사진'], 'w1200', () => {
-        image.remove(); photo.textContent = initial; photo.classList.add('is-fallback');
+        image.remove(); setSilhouette(photo);
       });
       photo.append(image);
     } else {
-      photo.textContent = initial; photo.classList.add('is-fallback');
+      setSilhouette(photo);
     }
     const body = document.createElement('div'); body.className = 'person-body';
     const name = document.createElement('h3'); name.textContent = displayName;
