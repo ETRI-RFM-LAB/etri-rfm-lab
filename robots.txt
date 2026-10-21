@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /scholar-updates.html
+Disallow: /data/
+
+Sitemap: https://etri-rfm-lab.github.io/sitemap.xml
