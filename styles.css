@@ -103,10 +103,6 @@ body[data-page="home"] .news-card{border-radius:4px;box-shadow:0 5px 20px rgba(2
 @media(max-width:720px){.logo{width:auto}.mark{width:170px;height:22px;background-size:contain}}
 /* Home hero title: keep "Robot Foundation Models" on one line on wide screens */
 body[data-page="home"] .hero h1{max-width:none}
-/* Home about visual */
-.about-visual{display:grid;gap:0;border-left:5px solid var(--blue);background:#f2f6fb}.about-visual img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
-body[data-page="home"] .about-visual .flow{min-height:0;padding:18px;border-left:0;background:none;grid-template-columns:repeat(2,1fr);gap:10px}
-body[data-page="home"] .about-visual .flow div{padding:11px 14px}
 /* Publications: one year label per group, lab members highlighted */
 .pub:not(.year-start){border-top-color:#edf1f6}.pub.year-start{border-top:2px solid var(--navy)}.pub .authors strong{color:var(--ink);font-weight:800}
 @media(max-width:720px){.pub-year:empty{display:none}}
