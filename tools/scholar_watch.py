@@ -164,13 +164,16 @@ def notion_append(new_items, today):
         log('Notion token not configured; skipping Notion update')
         return False
     text = lambda content, link=None: {'type': 'text', 'text': {'content': content[:1900], **({'link': {'url': link}} if link else {})}}
-    blocks = [{'object': 'block', 'type': 'heading_3', 'heading_3': {'rich_text': [text(f'{today} · 새 논문 {len(new_items)}편')]}}]
+    children = []
     for item in new_items:
         detail = f" — {item['venue'] or '학회/저널 미상'}, {item['year'] or ''} ({', '.join(item['members'])})"
-        blocks.append({'object': 'block', 'type': 'bulleted_list_item',
-                       'bulleted_list_item': {'rich_text': [text(item['title'], item['scholar_url']), text(detail)]}})
-    blocks.append({'object': 'block', 'type': 'paragraph',
-                   'paragraph': {'rich_text': [text('시트에 붙여 넣을 행 보기: '), text(SITE_PAGE, SITE_PAGE)]}})
+        children.append({'object': 'block', 'type': 'bulleted_list_item',
+                         'bulleted_list_item': {'rich_text': [text(item['title'], item['scholar_url']), text(detail)]}})
+    children.append({'object': 'block', 'type': 'paragraph',
+                     'paragraph': {'rich_text': [text('시트에 붙여 넣을 행 보기: '), text(SITE_PAGE, SITE_PAGE)]}})
+    # One collapsible toggle per day keeps the log short.
+    title = {**text(f'{today} · 새 논문 {len(new_items)}편'), 'annotations': {'bold': True}}
+    blocks = [{'object': 'block', 'type': 'toggle', 'toggle': {'rich_text': [title], 'children': children}}]
     fetch(f'https://api.notion.com/v1/blocks/{NOTION_PAGE_ID}/children', data=json.dumps({'children': blocks}).encode(), method='PATCH',
           headers={'Authorization': f'Bearer {token}', 'Notion-Version': '2022-06-28', 'Content-Type': 'application/json'})
     log(f'Notion: appended {len(new_items)} papers')
