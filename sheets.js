@@ -60,6 +60,7 @@ function status(id, message = '') { const element = document.getElementById(id);
 const LINK_ICONS = {
   github: '<path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>',
   arxiv: '<path d="M7.4 3h6.2l3.9 6.75L13.6 16.5H7.4L3.5 9.75 7.4 3Zm1.15 2-2.74 4.75 2.74 4.75h3.9l2.74-4.75L12.45 5h-3.9Zm.65 2.1h1.7l3.1 5.8h-1.8l-.62-1.28H8.42L7.8 12.9H6l3.2-5.8Zm.02 3.08h1.56L10 8.57l-.78 1.61Z"/>',
+  paper: '<path d="M6 2h8.5L20 7.5V22H6V2Zm1.8 1.8v16.4h10.4V8.3h-4.5V3.8H7.8Zm7.7.6v2.1h2.1l-2.1-2.1ZM9.5 11h7v1.6h-7V11Zm0 3.2h7v1.6h-7v-1.6Zm0 3.2h4.8V19H9.5v-1.6Z"/>',
   media: '<path d="M8 5.7v12.6L18 12 8 5.7Z"/>',
   homepage: '<path d="M12 3 2.8 10.5l1.3 1.6L5.5 11v9h5v-5h3v5h5v-9l1.4 1.1 1.3-1.6L12 3Zm4.5 15h-1v-5h-7v5h-1V9.4l4.5-3.7 4.5 3.7V18Z"/>',
   scholar: '<path d="m12 3-10 5 4 2v5.5C6 17.4 8.7 19 12 19s6-1.6 6-3.5V10l2-1v7h2V8L12 3Zm4 12.5c-.2.5-1.7 1.5-4 1.5s-3.8-1-4-1.5V11l4 2 4-2v4.5ZM12 10.8 6.4 8 12 5.2 17.6 8 12 10.8Z"/>',
@@ -78,6 +79,16 @@ function chip(label, href) {
   const anchor = document.createElement('a');
   const kind = label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   anchor.className = `chip chip-${kind}`; anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+  const icon = linkIcon(kind);
+  if (icon) anchor.append(icon);
+  anchor.append(document.createTextNode(label));
+  return anchor;
+}
+
+function pubLink(label, href, kind) {
+  if (!href) return null;
+  const anchor = document.createElement('a');
+  anchor.className = `pub-link pub-link-${kind}`; anchor.href = href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
   const icon = linkIcon(kind);
   if (icon) anchor.append(icon);
   anchor.append(document.createTextNode(label));
@@ -202,27 +213,68 @@ function drawPublications() {
     const venue = document.createElement('p'); venue.className = 'venue'; venue.textContent = item['학회/저널 명'] || '';
     const summary = document.createElement('p'); summary.textContent = item['한줄요약(영문)'] || '';
     body.append(title, authors, venue, summary);
-    const links = document.createElement('div'); links.className = 'chips';
-    [chip('GitHub', item['깃허브 주소']), chip('arXiv', item['arxiv주소']), chip('Media', item['이미지/동영상 주소'])].filter(Boolean).forEach(a => links.append(a));
-    article.append(year);
+    const links = document.createElement('div'); links.className = 'pub-links';
     const mediaUrl = item['이미지/동영상 주소'] || item['동영상/이미지'] || '';
-    if (addThumbnail(article, mediaUrl, item['논문 제목'])) article.classList.add('has-media');
-    article.append(body, links); root.append(article);
+    const videoUrl = youtubeId(mediaUrl) ? mediaUrl : '';
+    [pubLink('Paper', item['arxiv주소'], 'paper'), pubLink('Code', item['깃허브 주소'], 'github'), pubLink('Video', videoUrl, 'media')].filter(Boolean).forEach(a => links.append(a));
+    if (links.childElementCount) body.append(links);
+    article.append(year);
+    if (addThumbnail(article, mediaUrl || PAPER_FIGURES[titleKey(item)], item['논문 제목'])) {
+      article.classList.add('has-media');
+      const thumb = article.querySelector('.card-thumb:not(.is-video)');
+      if (thumb) {
+        const caption = item['영문 논문 제목'] || item['논문 제목'];
+        thumb.classList.add('is-zoomable'); thumb.tabIndex = 0; thumb.setAttribute('role', 'button'); thumb.setAttribute('aria-label', `Enlarge figure: ${caption}`);
+        const open = () => { const image = thumb.querySelector('img'); if (image?.currentSrc) openFigure(image.currentSrc, caption); };
+        thumb.addEventListener('click', open);
+        thumb.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+      }
+    }
+    article.append(body); root.append(article);
   });
   if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No publications match your search.'; root.append(empty); }
   document.getElementById('publication-count').textContent = `${data.length} result${data.length === 1 ? '' : 's'}`;
   status('page-status');
 }
 
+// Representative figures taken from each paper's public version, used when the sheet has no image.
+const PAPER_FIGURES = {
+  'learningdexterousbimanualcatchskillsthroughadversarialcooperativeheterogeneousagentreinforcementlearning': 'assets/papers/bimanual-catch.jpg',
+  'carevladomainspecializedvisionlanguagemodelforearlyasdscreening': 'assets/papers/care-vl.jpg',
+  'spaceawareinstructiontuningdatasetandbenchmarkforguidedogrobotsassistingthevisuallyimpaired': 'assets/papers/space-aware-instruction-tuning.jpg',
+  'rethinkingdatabiasdatasetcopyrightprotectionviaembeddingclasswisehiddenbias': 'assets/papers/undercover-bias.jpg',
+  'learningtorewindviaiterativepredictionofpastweightsforpracticalunlearning': 'assets/papers/learning-to-rewind.jpg',
+  'savlmv2usefulcomprehensiveandconciseguidanceforguidedogrobotsassistingthevisuallyimpaired': 'assets/papers/sa-vlm-v2.jpg'
+};
+
+function titleKey(item) { return normalize(item['영문 논문 제목'] || item['논문 제목']).replace(/[^a-z0-9가-힣]/g, ''); }
+
 function dedupePublications(items) {
   const byKey = new Map();
   items.forEach(item => {
-    const key = `${normalize(item['영문 논문 제목'] || item['논문 제목']).replace(/[^a-z0-9가-힣]/g, '')}|${item['연도']}`;
+    const key = `${titleKey(item)}|${item['연도']}`;
     const kept = byKey.get(key);
     if (!kept) { byKey.set(key, { ...item }); return; }
     Object.entries(item).forEach(([field, value]) => { if (value && !kept[field]) kept[field] = value; });
   });
   return [...byKey.values()];
+}
+
+function openFigure(src, caption) {
+  let box = document.getElementById('figure-lightbox');
+  if (!box) {
+    box = document.createElement('div'); box.id = 'figure-lightbox'; box.className = 'lightbox';
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Figure preview');
+    box.innerHTML = '<button class="lightbox-close" type="button" aria-label="Close preview">×</button><img src="" alt=""><div class="lightbox-meta"></div>';
+    const close = () => { box.classList.remove('open'); box.querySelector('img').src = ''; };
+    box.querySelector('.lightbox-close').addEventListener('click', close);
+    box.addEventListener('click', event => { if (event.target === box) close(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && box.classList.contains('open')) close(); });
+    document.body.append(box);
+  }
+  const preview = box.querySelector('img'); preview.src = src; preview.alt = caption;
+  box.querySelector('.lightbox-meta').textContent = caption;
+  box.classList.add('open'); box.querySelector('.lightbox-close').focus();
 }
 
 function renderPublications(items) {
@@ -251,21 +303,26 @@ function drawPatents() {
   const data = filteredPatents();
   const root = document.getElementById('patent-list'); root.replaceChildren();
   data.forEach(item => {
-    const article = document.createElement('article'); article.className = 'patent';
-    const top = document.createElement('div'); top.className = 'patent-top';
-    const country = document.createElement('span'); country.className = 'country'; country.textContent = translations[item['출원국가']] || item['출원국가'] || '—';
-    const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = translations[item['세부상태']] || item['세부상태'] || 'Filed';
-    top.append(country, badge);
-    const title = document.createElement('h3'); title.textContent = item['특허명(영문)'] || item['영문 특허명'] || patentTitle(item);
-    const inventors = document.createElement('p'); inventors.textContent = `Inventors · ${item['발명자 (영문)'] || item['발명자 (국문)'] || '—'}`;
-    const number = document.createElement('p'); number.textContent = `Application · ${item['출원번호'] || '—'}${item['출원일'] ? ' · ' + item['출원일'] : ''}`;
-    article.append(top, title, inventors, number);
-    const detail = chip('View details →', item['링크']); if (detail) article.append(detail);
+    const article = document.createElement('article'); article.className = 'patent-row';
+    const meta = document.createElement('p'); meta.className = 'patent-meta';
+    const statusLabel = document.createElement('span'); statusLabel.className = 'patent-status'; statusLabel.textContent = translations[item['세부상태']] || item['세부상태'] || 'Filed';
+    meta.append(statusLabel, [translations[item['출원국가']] || item['출원국가'], item['출원번호'], item['출원일']].filter(Boolean).join(' · '));
+    const title = document.createElement('h3'); title.textContent = readableTitle(item['특허명(영문)'] || item['영문 특허명'] || patentTitle(item));
+    const inventors = document.createElement('p'); inventors.className = 'patent-inventors'; inventors.textContent = item['발명자 (영문)'] || item['발명자 (국문)'] || '';
+    article.append(meta, title, inventors);
+    const detail = pubLink('Details', item['링크'], 'details'); if (detail) { const links = document.createElement('div'); links.className = 'pub-links'; links.append(detail); article.append(links); }
     root.append(article);
   });
   if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No patents match your search.'; root.append(empty); }
   document.getElementById('patent-count').textContent = `${data.length} result${data.length === 1 ? '' : 's'}`;
   status('page-status');
+}
+
+function readableTitle(value) {
+  const text = String(value || '').trim();
+  if (!/[A-Z]/.test(text) || text !== text.toUpperCase()) return text;
+  const small = new Set(['a', 'an', 'and', 'as', 'at', 'by', 'for', 'from', 'in', 'into', 'of', 'on', 'or', 'the', 'to', 'with']);
+  return text.toLowerCase().split(' ').map((word, index) => (index && small.has(word)) ? word : word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
 function patentTitle(item) { return item['특허명'] || item['특허명 확인 요령'] || ''; }
@@ -310,8 +367,8 @@ function renderPeople(items) {
       email.append(linkIcon('email'), document.createTextNode(item['이메일']));
     }
     const field = document.createElement('div'); field.className = 'field'; field.textContent = item['연구 분야'] || '';
-    const links = document.createElement('div'); links.className = 'chips';
-    [chip('Homepage', item['개인 홈페이지']), chip('Scholar', item['google scholar'])].filter(Boolean).forEach(a => links.append(a));
+    const links = document.createElement('div'); links.className = 'pub-links';
+    [pubLink('Homepage', item['개인 홈페이지'], 'homepage'), pubLink('Scholar', item['google scholar'], 'scholar')].filter(Boolean).forEach(a => links.append(a));
     body.append(name, role); if (email) body.append(email); body.append(field, links); article.append(photo, body); root.append(article);
   });
   status('page-status', `${data.length} researchers`);
