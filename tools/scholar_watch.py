@@ -162,7 +162,7 @@ def notion_append(new_items, today):
             token = file.read().strip()
     except OSError:
         log('Notion token not configured; skipping Notion update')
-        return
+        return False
     text = lambda content, link=None: {'type': 'text', 'text': {'content': content[:1900], **({'link': {'url': link}} if link else {})}}
     blocks = [{'object': 'block', 'type': 'heading_3', 'heading_3': {'rich_text': [text(f'{today} · 새 논문 {len(new_items)}편')]}}]
     for item in new_items:
@@ -174,6 +174,7 @@ def notion_append(new_items, today):
     fetch(f'https://api.notion.com/v1/blocks/{NOTION_PAGE_ID}/children', data=json.dumps({'children': blocks}).encode(), method='PATCH',
           headers={'Authorization': f'Bearer {token}', 'Notion-Version': '2022-06-28', 'Content-Type': 'application/json'})
     log(f'Notion: appended {len(new_items)} papers')
+    return True
 
 
 def main():
@@ -182,6 +183,7 @@ def main():
     today = dt.datetime.now(KST).strftime('%Y-%m-%d')
     os.makedirs(STATE_DIR, exist_ok=True)
     state = load_json(STATE_FILE, {'seen': {}, 'details': {}})
+    state.setdefault('notified', [])
     seen_before = dict(state['seen'])
 
     if not dry_run and not no_push:
@@ -237,8 +239,8 @@ def main():
         item['row'] = sheet_row(paper_columns, item)
         items.append(item)
     items.sort(key=lambda item: (item['first_seen'], item['year'], item['title']), reverse=True)
-    new_items = [item for item in items if item['first_seen'] == today]
-    log(f'{len(items)} papers missing from the sheet, {len(new_items)} new today')
+    new_items = [item for item in items if norm(item['title']) not in state['notified']]
+    log(f'{len(items)} papers missing from the sheet, {len(new_items)} not yet sent to Notion')
 
     output = {'updated': dt.datetime.now(KST).isoformat(timespec='minutes'), 'columns': paper_columns,
               'failed_members': failures, 'items': [{k: v for k, v in item.items() if k != 'is_journal'} for item in items]}
@@ -255,8 +257,10 @@ def main():
             json.dump(state, file, ensure_ascii=False, indent=2)
         return
 
-    with open(STATE_FILE, 'w', encoding='utf-8') as file:
-        json.dump(state, file, ensure_ascii=False, indent=2)
+    def save_state():
+        with open(STATE_FILE, 'w', encoding='utf-8') as file:
+            json.dump(state, file, ensure_ascii=False, indent=2)
+    save_state()
 
     # Only rewrite and push the file when the list changes, so quiet days add no commits.
     previous = load_json(OUTPUT, {})
@@ -271,7 +275,9 @@ def main():
 
     if new_items:
         try:
-            notion_append(new_items, today)
+            if notion_append(new_items, today):
+                state['notified'].extend(norm(item['title']) for item in new_items)
+                save_state()
         except Exception as error:
             log(f'Notion update failed: {error}')
 
