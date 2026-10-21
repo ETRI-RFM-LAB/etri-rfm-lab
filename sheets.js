@@ -3,7 +3,7 @@ const SHEET_CONFIG = {
   tabs: { publications: '논문', patents: '특허', people: '인물', news: '뉴스', gallery: '갤러리' }
 };
 
-const archive = { publications: [], patents: [], pubFilter: 'all', patentFilter: 'all' };
+const archive = { publications: [], patents: [], pubFilter: 'top', patentFilter: 'all' };
 
 function parseCSV(text) {
   const rows = [];
@@ -187,8 +187,19 @@ function drawPublications() {
   status('page-status');
 }
 
+function dedupePublications(items) {
+  const byKey = new Map();
+  items.forEach(item => {
+    const key = `${normalize(item['영문 논문 제목'] || item['논문 제목']).replace(/[^a-z0-9가-힣]/g, '')}|${item['연도']}`;
+    const kept = byKey.get(key);
+    if (!kept) { byKey.set(key, { ...item }); return; }
+    Object.entries(item).forEach(([field, value]) => { if (value && !kept[field]) kept[field] = value; });
+  });
+  return [...byKey.values()];
+}
+
 function renderPublications(items) {
-  archive.publications = items.filter(item => item['논문 제목'] && !placeholder(item) && item['제출 상태'] === 'Accept')
+  archive.publications = dedupePublications(items.filter(item => item['논문 제목'] && !placeholder(item) && item['제출 상태'] === 'Accept'))
     .sort((a, b) => Number(b['연도'] || 0) - Number(a['연도'] || 0));
   drawPublications();
 }
