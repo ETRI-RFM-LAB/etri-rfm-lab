@@ -342,10 +342,7 @@ function setSilhouette(photo) {
   photo.innerHTML = SILHOUETTE; photo.classList.add('is-fallback');
 }
 
-function renderPeople(items) {
-  const data = items.filter(item => item['이름']);
-  const root = document.getElementById('people-list'); root.replaceChildren();
-  data.forEach(item => {
+function personCard(item) {
     const displayName = item['영문 이름'] || item['이름'];
     const article = document.createElement('article'); article.className = 'person';
     const photo = document.createElement('div'); photo.className = 'photo';
@@ -369,9 +366,24 @@ function renderPeople(items) {
     const field = document.createElement('div'); field.className = 'field'; field.textContent = item['연구 분야'] || '';
     const links = document.createElement('div'); links.className = 'pub-links';
     [pubLink('Homepage', item['개인 홈페이지'], 'homepage'), pubLink('Scholar', item['google scholar'], 'scholar')].filter(Boolean).forEach(a => links.append(a));
-    body.append(name, role); if (email) body.append(email); body.append(field, links); article.append(photo, body); root.append(article);
-  });
+    body.append(name, role); if (email) body.append(email); body.append(field, links); article.append(photo, body);
+    return article;
+}
+
+function renderPeople(items) {
+  const data = items.filter(item => item['이름']);
+  const root = document.getElementById('people-list'); root.replaceChildren();
+  data.forEach(item => root.append(personCard(item)));
   status('page-status', `${data.length} researchers`);
+}
+
+// Lab members who also hold UST faculty appointments, in display order (Korean names as in the people tab).
+const UST_PROFESSORS = ['한병옥', '윤우한', '장진혁', '유철환'];
+
+function renderUstProfessors(items) {
+  const root = document.getElementById('ust-list'); if (!root) return;
+  const byName = new Map(items.map(item => [item['이름'], item]));
+  root.replaceChildren(...UST_PROFESSORS.map(name => byName.get(name)).filter(Boolean).map(personCard));
 }
 
 function renderNews(items) {
@@ -410,7 +422,7 @@ async function loadMembers() {
 
 async function loadPage(kind) {
   if (kind === 'publications') await loadMembers();
-  try { const rows = await getTab(SHEET_CONFIG.tabs[kind]); ({ publications: renderPublications, patents: renderPatents, people: renderPeople, news: renderNews })[kind](rows); }
+  try { const rows = await getTab(SHEET_CONFIG.tabs[kind === 'contact' ? 'people' : kind]); ({ publications: renderPublications, patents: renderPatents, people: renderPeople, news: renderNews, contact: renderUstProfessors })[kind](rows); }
   catch (error) { console.error(error); status(kind === 'news' ? 'news-status' : 'page-status', 'Unable to load data. Check the Google Sheets sharing and web publishing settings.'); }
 }
 
@@ -418,6 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindFilters();
   const kind = document.body.dataset.page;
   if (['publications', 'patents', 'people'].includes(kind)) loadPage(kind);
+  if (document.getElementById('ust-list')) loadPage('contact');
   if (document.getElementById('news-list')) loadPage('news');
   const menu = document.querySelector('.menu');
   if (menu && !menu.querySelector('a[href="gallery.html"]')) { const gallery = document.createElement('a'); gallery.href = 'gallery.html'; gallery.textContent = 'Gallery'; if (kind === 'gallery') gallery.className = 'active'; menu.append(gallery); }
