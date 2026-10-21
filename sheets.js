@@ -3,7 +3,7 @@ const SHEET_CONFIG = {
   tabs: { publications: '논문', patents: '특허', people: '인물', news: '뉴스', gallery: '갤러리' }
 };
 
-const archive = { publications: [], patents: [], pubFilter: 'top', patentFilter: 'all' };
+const archive = { publications: [], patents: [], members: new Set(), pubFilter: 'top', patentFilter: 'all' };
 
 function parseCSV(text) {
   const rows = [];
@@ -154,6 +154,29 @@ function matchesPublicationFilter(item, filter) {
   return true;
 }
 
+function cleanAuthors(value) {
+  const text = String(value || '').replace(/[{}]/g, '').trim();
+  if (!text.includes(';')) return text;
+  return text.split(';').map(name => name.trim()).filter(Boolean)
+    .map(name => name.includes(',') ? name.split(',').map(part => part.trim()).reverse().join(' ') : name).join(', ');
+}
+
+function nameKey(name) {
+  const value = String(name || '');
+  if (/[가-힣]/.test(value)) return value.replace(/[^가-힣]/g, '');
+  return value.toLowerCase().replace(/[^a-z]/g, '').split('').sort().join('');
+}
+
+function authorLine(value) {
+  const line = document.createElement('p'); line.className = 'authors';
+  cleanAuthors(value).split(',').map(name => name.trim()).filter(Boolean).forEach((name, index) => {
+    if (index) line.append(', ');
+    if (archive.members.has(nameKey(name))) { const member = document.createElement('strong'); member.textContent = name; line.append(member); }
+    else line.append(name);
+  });
+  return line;
+}
+
 function filteredPublications() {
   const query = normalize(document.getElementById('publication-search')?.value);
   return archive.publications.filter(item => {
@@ -166,12 +189,16 @@ function drawPublications() {
   const data = filteredPublications();
   const root = document.getElementById('publication-list');
   root.replaceChildren();
+  let previousYear = null;
   data.forEach(item => {
     const article = document.createElement('article'); article.className = 'pub';
-    const year = document.createElement('div'); year.className = 'pub-year'; year.textContent = item['연도'] || '—';
+    const yearLabel = item['연도'] || '—';
+    const year = document.createElement('div'); year.className = 'pub-year';
+    if (yearLabel !== previousYear) { year.textContent = yearLabel; article.classList.add('year-start'); }
+    previousYear = yearLabel;
     const body = document.createElement('div');
     const title = document.createElement('h3'); title.textContent = item['영문 논문 제목'] || item['논문 제목'];
-    const authors = document.createElement('p'); authors.textContent = item['저자(모두)'] || '';
+    const authors = authorLine(item['저자(모두)']);
     const venue = document.createElement('p'); venue.className = 'venue'; venue.textContent = item['학회/저널 명'] || '';
     const summary = document.createElement('p'); summary.textContent = item['한줄요약(영문)'] || '';
     body.append(title, authors, venue, summary);
@@ -215,7 +242,7 @@ function filteredPatents() {
   const query = normalize(document.getElementById('patent-search')?.value);
   return archive.patents.filter(item => {
     const matchesStatus = archive.patentFilter === 'all' || patentStatus(item) === archive.patentFilter;
-    return matchesStatus && includesQuery(item, ['특허명', '특허명(영문)', '영문 특허명', '발명자 (국문)', '발명자 (영문)', '출원번호', '등록번호', '출원국가'], query);
+    return matchesStatus && includesQuery(item, ['특허명', '특허명 확인 요령', '특허명(영문)', '영문 특허명', '발명자 (국문)', '발명자 (영문)', '출원번호', '등록번호', '출원국가'], query);
   });
 }
 
@@ -229,7 +256,7 @@ function drawPatents() {
     const country = document.createElement('span'); country.className = 'country'; country.textContent = translations[item['출원국가']] || item['출원국가'] || '—';
     const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = translations[item['세부상태']] || item['세부상태'] || 'Filed';
     top.append(country, badge);
-    const title = document.createElement('h3'); title.textContent = item['특허명(영문)'] || item['영문 특허명'] || item['특허명'];
+    const title = document.createElement('h3'); title.textContent = item['특허명(영문)'] || item['영문 특허명'] || patentTitle(item);
     const inventors = document.createElement('p'); inventors.textContent = `Inventors · ${item['발명자 (영문)'] || item['발명자 (국문)'] || '—'}`;
     const number = document.createElement('p'); number.textContent = `Application · ${item['출원번호'] || '—'}${item['출원일'] ? ' · ' + item['출원일'] : ''}`;
     article.append(top, title, inventors, number);
@@ -241,8 +268,15 @@ function drawPatents() {
   status('page-status');
 }
 
+function patentTitle(item) { return item['특허명'] || item['특허명 확인 요령'] || ''; }
+
 function renderPatents(items) {
-  archive.patents = items.filter(item => item['특허명'] && !placeholder(item)).sort((a, b) => dateValue(b['출원일']) - dateValue(a['출원일']));
+  const unique = new Map();
+  items.filter(item => patentTitle(item) && !placeholder(item)).forEach(item => {
+    const key = `${normalize(patentTitle(item))}|${normalize(item['출원번호'])}`;
+    if (!unique.has(key)) unique.set(key, item);
+  });
+  archive.patents = [...unique.values()].sort((a, b) => dateValue(b['출원일']) - dateValue(a['출원일']));
   drawPatents();
 }
 
@@ -310,7 +344,15 @@ function bindFilters() {
   document.querySelectorAll('[data-patent-filter]').forEach(button => button.addEventListener('click', () => { archive.patentFilter = button.dataset.patentFilter; document.querySelectorAll('[data-patent-filter]').forEach(b => b.classList.toggle('active', b === button)); drawPatents(); }));
 }
 
+async function loadMembers() {
+  try {
+    const people = await getTab(SHEET_CONFIG.tabs.people);
+    archive.members = new Set(people.flatMap(person => [nameKey(person['영문 이름']), nameKey(person['이름'])]).filter(Boolean));
+  } catch (error) { console.warn('Unable to load lab members', error); }
+}
+
 async function loadPage(kind) {
+  if (kind === 'publications') await loadMembers();
   try { const rows = await getTab(SHEET_CONFIG.tabs[kind]); ({ publications: renderPublications, patents: renderPatents, people: renderPeople, news: renderNews })[kind](rows); }
   catch (error) { console.error(error); status(kind === 'news' ? 'news-status' : 'page-status', 'Unable to load data. Check the Google Sheets sharing and web publishing settings.'); }
 }
