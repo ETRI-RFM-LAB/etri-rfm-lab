@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Scholar Updates | ETRI RFM Lab</title>
   <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-  <link rel="stylesheet" href="styles.css?v=44">
+  <link rel="stylesheet" href="styles.css?v=48">
 </head>
 <body data-page="scholar-updates">
   <nav class="nav"><div class="wrap navin"><a class="logo" href="index.html" aria-label="ETRI home"><span class="mark">ETRI</span></a><div class="menu"><a href="index.html">Home</a><a href="https://www.youtube.com/@ETRI_RFM" target="_blank" rel="noopener">YouTube</a><a href="publications.html">Research</a><a href="patents.html">Patents</a><a href="people.html">People</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></div><button class="hamb" aria-label="Open menu">☰</button></div></nav>
@@ -44,12 +44,26 @@
       if (!items.length) { list.innerHTML = '<div class="empty-state">시트에 없는 새 논문이 없습니다.</div>'; return; }
       copyAll.hidden = false;
       copyAll.addEventListener('click', () => copy(items.map(item => tsv(item.row)).join('\n'), copyAll, '전체 행 복사'));
-      const newest = items.reduce((latest, item) => item.first_seen > latest ? item.first_seen : latest, '');
+      // One collapsed group per discovery date, newest first.
+      const groups = new Map();
+      items.forEach(item => { if (!groups.has(item.first_seen)) groups.set(item.first_seen, []); groups.get(item.first_seen).push(item); });
+      const groupBody = new Map();
+      [...groups.keys()].sort().reverse().forEach((date, index) => {
+        const group = document.createElement('details'); group.className = 'update-group';
+        const summary = document.createElement('summary');
+        const label = document.createElement('span'); label.className = 'update-group-title'; label.textContent = `${date} · 새 논문 ${groups.get(date).length}편`;
+        summary.append(label);
+        if (index === 0) { const badge = document.createElement('span'); badge.className = 'patent-status'; badge.textContent = 'NEW'; summary.append(badge); }
+        const copyGroup = document.createElement('button'); copyGroup.type = 'button'; copyGroup.className = 'update-copy'; copyGroup.textContent = '이 날짜 행 복사';
+        copyGroup.addEventListener('click', event => { event.preventDefault(); copy(groups.get(date).map(item => tsv(item.row)).join('\n'), copyGroup, '이 날짜 행 복사'); });
+        summary.append(copyGroup);
+        const body = document.createElement('div'); body.className = 'update-group-body';
+        group.append(summary, body); list.append(group); groupBody.set(date, body);
+      });
       items.forEach(item => {
         const article = document.createElement('article'); article.className = 'update-row';
         const head = document.createElement('p'); head.className = 'patent-meta';
-        if (item.first_seen === newest) { const badge = document.createElement('span'); badge.className = 'patent-status'; badge.textContent = 'NEW'; head.append(badge); }
-        head.append(`${item.year || ''} · 발견 ${item.first_seen} · ${item.members.join(', ')}`);
+        head.append(`${item.year || ''} · ${item.members.join(', ')}`);
         const title = document.createElement('h3'); title.textContent = item.title;
         const authors = document.createElement('p'); authors.className = 'patent-inventors'; authors.textContent = item.authors;
         const venue = document.createElement('p'); venue.className = 'update-venue'; venue.textContent = item.venue || '학회/저널 정보 없음';
@@ -62,7 +76,7 @@
           const link = document.createElement('a'); link.className = 'pub-link'; link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = label;
           actions.append(link);
         });
-        article.append(head, title, authors, venue, actions); list.append(article);
+        article.append(head, title, authors, venue, actions); groupBody.get(item.first_seen).append(article);
       });
     })();
   </script>

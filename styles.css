@@ -201,3 +201,9 @@ body[data-page="home"] .head h2{color:#1d2433;font-weight:800}
 .ust-people{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.ust-people{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .contact-heading,.ust-section h2{margin:0 0 28px;color:#1d2433;font-size:32px;font-weight:800;letter-spacing:-.8px}.ust-section h2{margin-bottom:10px}
+/* Scholar updates: collapsible date groups */
+.update-group{border-top:1px solid #1d2433}.update-group:last-child{border-bottom:1px solid var(--line)}
+.update-group summary{display:flex;align-items:center;gap:12px;padding:18px 0;cursor:pointer;list-style:none}.update-group summary::-webkit-details-marker{display:none}
+.update-group summary:before{content:"▸";color:#6b7686;font-size:14px;transition:transform .15s}.update-group[open] summary:before{transform:rotate(90deg)}
+.update-group-title{color:#1d2433;font-size:17px;font-weight:800}.update-group summary .update-copy{margin-left:auto}
+.update-group-body{padding:0 0 8px 26px}.update-group-body .update-row:first-child{border-top:1px solid #eef1f5}
