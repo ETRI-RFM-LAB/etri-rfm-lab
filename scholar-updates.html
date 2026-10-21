@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Scholar Updates | ETRI RFM Lab</title>
+  <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="stylesheet" href="styles.css?v=44">
+</head>
+<body data-page="scholar-updates">
+  <nav class="nav"><div class="wrap navin"><a class="logo" href="index.html" aria-label="ETRI home"><span class="mark">ETRI</span></a><div class="menu"><a href="index.html">Home</a><a href="https://www.youtube.com/@ETRI_RFM" target="_blank" rel="noopener">YouTube</a><a href="publications.html">Research</a><a href="patents.html">Patents</a><a href="people.html">People</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></div><button class="hamb" aria-label="Open menu">☰</button></div></nav>
+  <header class="page-hero"><div class="wrap"><small>INTERNAL · NOT LINKED</small><h1>Scholar Updates</h1><p>매일 오전 8시에 멤버들의 Google Scholar를 확인해, 논문 시트에 아직 없는 논문을 시트에 붙여 넣기 좋은 형태로 정리합니다.</p></div></header>
+  <main class="section wrap">
+    <div class="updates-bar"><p class="updates-meta" id="updates-meta">Loading...</p><button class="updates-copy-all" id="copy-all" type="button" hidden>전체 행 복사</button></div>
+    <p class="updates-help">"행 복사"를 누른 뒤 Google 시트 <b>논문</b> 탭 맨 아래 빈 줄의 첫 칸(A열)을 클릭하고 붙여 넣으세요. 붙여 넣은 뒤 학회/저널 구분, 우수학술대회 여부, 요약 등을 확인해 주세요.</p>
+    <div id="updates-list" class="updates-list"></div>
+  </main>
+  <footer class="footer"><div class="wrap"><span>© 2026 Electronics and Telecommunications Research Institute.</span><span>ETRI RFM Lab · <a href="https://www.youtube.com/@ETRI_RFM" target="_blank" rel="noopener">YouTube</a></span></div></footer>
+  <script src="sheets.js?v=31"></script>
+  <script>
+    (async () => {
+      const meta = document.getElementById('updates-meta');
+      const list = document.getElementById('updates-list');
+      const copyAll = document.getElementById('copy-all');
+      const tsv = row => row.map(value => String(value ?? '').replace(/[\t\r\n]+/g, ' ')).join('\t');
+      const copy = async (text, button, label) => {
+        try { await navigator.clipboard.writeText(text); button.textContent = '복사됨 ✓'; }
+        catch { button.textContent = '복사 실패'; }
+        setTimeout(() => { button.textContent = label; }, 1600);
+      };
+      let data;
+      try {
+        const response = await fetch(`data/scholar-updates.json?_=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(response.status);
+        data = await response.json();
+      } catch {
+        meta.textContent = '아직 확인 결과가 없습니다. 첫 자동 확인 후에 표시됩니다.';
+        return;
+      }
+      const items = data.items || [];
+      const updated = (data.updated || '').replace('T', ' ').slice(0, 16);
+      meta.textContent = `시트에 없는 논문 ${items.length}편 · 마지막 변경 ${updated}` + (data.failed_members?.length ? ` · 확인 실패: ${data.failed_members.join(', ')}` : '');
+      if (!items.length) { list.innerHTML = '<div class="empty-state">시트에 없는 새 논문이 없습니다.</div>'; return; }
+      copyAll.hidden = false;
+      copyAll.addEventListener('click', () => copy(items.map(item => tsv(item.row)).join('\n'), copyAll, '전체 행 복사'));
+      const newest = items.reduce((latest, item) => item.first_seen > latest ? item.first_seen : latest, '');
+      items.forEach(item => {
+        const article = document.createElement('article'); article.className = 'update-row';
+        const head = document.createElement('p'); head.className = 'patent-meta';
+        if (item.first_seen === newest) { const badge = document.createElement('span'); badge.className = 'patent-status'; badge.textContent = 'NEW'; head.append(badge); }
+        head.append(`${item.year || ''} · 발견 ${item.first_seen} · ${item.members.join(', ')}`);
+        const title = document.createElement('h3'); title.textContent = item.title;
+        const authors = document.createElement('p'); authors.className = 'patent-inventors'; authors.textContent = item.authors;
+        const venue = document.createElement('p'); venue.className = 'update-venue'; venue.textContent = item.venue || '학회/저널 정보 없음';
+        const actions = document.createElement('div'); actions.className = 'pub-links';
+        const button = document.createElement('button'); button.type = 'button'; button.className = 'update-copy'; button.textContent = '행 복사';
+        button.addEventListener('click', () => copy(tsv(item.row), button, '행 복사'));
+        actions.append(button);
+        [['Scholar', item.scholar_url], ['Paper', item.link]].forEach(([label, href]) => {
+          if (!href) return;
+          const link = document.createElement('a'); link.className = 'pub-link'; link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = label;
+          actions.append(link);
+        });
+        article.append(head, title, authors, venue, actions); list.append(article);
+      });
+    })();
+  </script>
+</body>
+</html>
