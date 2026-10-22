@@ -128,15 +128,16 @@ function youtubeId(url) {
   return value.match(/[?&]v=([^&#]+)/)?.[1] || value.match(/youtu\.be\/([^?&#/]+)/)?.[1] || value.match(/youtube\.com\/shorts\/([^?&#/]+)/)?.[1] || '';
 }
 
-function addThumbnail(root, url, alt) {
+function addThumbnail(root, url, alt, onFailure) {
   if (!url) return false;
+  const fail = media => { if (onFailure) media.replaceWith(onFailure()); else media.remove(); };
   const videoId = youtubeId(url);
   const media = document.createElement(videoId ? 'button' : 'div'); media.className = 'card-thumb';
   if (videoId) { media.type = 'button'; media.setAttribute('aria-label', `Play video: ${alt}`); }
   const image = document.createElement('img'); image.alt = alt; image.loading = 'lazy';
   if (videoId) {
     image.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-    image.onerror = () => media.remove();
+    image.onerror = () => fail(media);
     media.classList.add('is-video');
     media.addEventListener('click', () => {
       const frame = document.createElement('iframe');
@@ -145,7 +146,7 @@ function addThumbnail(root, url, alt) {
       media.classList.add('is-playing'); media.replaceChildren(frame);
     }, { once: true });
   } else {
-    loadDriveImage(image, url, 'w1200', () => media.remove());
+    loadDriveImage(image, url, 'w1200', () => fail(media));
   }
   media.append(image); root.append(media); return true;
 }
@@ -219,8 +220,10 @@ function drawPublications() {
     [pubLink('Paper', item['arxiv주소'], 'paper'), pubLink('Code', item['깃허브 주소'], 'github'), pubLink('Video', videoUrl, 'media')].filter(Boolean).forEach(a => links.append(a));
     if (links.childElementCount) body.append(links);
     article.append(year);
-    if (addThumbnail(article, mediaUrl || PAPER_FIGURES[titleKey(item)], item['논문 제목'])) {
-      article.classList.add('has-media');
+    article.classList.add('has-media');
+    const placeholder = () => venueTile(item);
+    if (!addThumbnail(article, mediaUrl || PAPER_FIGURES[titleKey(item)], item['논문 제목'], placeholder)) article.append(placeholder());
+    else {
       const thumb = article.querySelector('.card-thumb:not(.is-video)');
       if (thumb) {
         const caption = item['영문 논문 제목'] || item['논문 제목'];
@@ -235,6 +238,26 @@ function drawPublications() {
   if (!data.length) { const empty = document.createElement('div'); empty.className = 'empty-state'; empty.textContent = 'No publications match your search.'; root.append(empty); }
   document.getElementById('publication-count').textContent = `${data.length} result${data.length === 1 ? '' : 's'}`;
   status('page-status');
+}
+
+// Short venue labels for papers without a figure, so every row keeps the same thumbnail slot.
+const VENUE_ACRONYMS = [['대한기계학회', 'KSME'], ['기계저널', 'KSME'], ['대한전자공학회', 'IEIE'], ['한국통신학회', 'KICS'], ['한국로봇학회', 'KROS'], ['제어·로봇·시스템학회', 'ICROS'], ['한국정보기술학회', 'KIIT'], ['한국컴퓨터', 'KCC']];
+
+function venueLabel(venue) {
+  const name = String(venue || '').replace(/,\s*v\.\s*\d+.*$/i, '').trim();
+  const known = VENUE_ACRONYMS.find(([key]) => name.includes(key));
+  let label = known ? known[1] : (name.match(/\(([A-Za-z][A-Za-z0-9&-]{1,11})\)/) || name.match(/\b([A-Z][A-Za-z]*[A-Z][A-Za-z]*)\b/) || [])[1] || name;
+  if (/workshop/i.test(name) && !/workshop/i.test(label)) label += ' Workshop';
+  return label || 'Paper';
+}
+
+function venueTile(item) {
+  const tile = document.createElement('div'); tile.className = 'card-thumb is-placeholder'; tile.setAttribute('aria-hidden', 'true');
+  const label = venueLabel(item['학회/저널 명']);
+  const name = document.createElement('span'); name.className = 'tile-venue' + (label.length > 10 ? ' is-long' : ''); name.textContent = label;
+  tile.append(name);
+  if (item['연도']) { const year = document.createElement('span'); year.className = 'tile-year'; year.textContent = item['연도']; tile.append(year); }
+  return tile;
 }
 
 // Representative figures taken from each paper's public version, used when the sheet has no image.
