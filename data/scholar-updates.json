@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-21T15:35+09:00",
+  "updated": "2026-10-24T08:01+09:00",
   "columns": [
     "ID",
     "논문 제목",
@@ -22,6 +22,134 @@
   ],
   "failed_members": [],
   "items": [
+    {
+      "title": "Dynamics-aware planning representation for zero-shot reinforcement learning (student abstract)",
+      "scholar_url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=_Tehz9wAAAAJ&pagesize=50&sortby=pubdate&citation_for_view=_Tehz9wAAAAJ:d1gkVwhDpl0C",
+      "authors": "Jungho An, Taeyoung Kim, Haeun Kim, Dongsoo Har",
+      "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "year": 2026,
+      "members": [
+        "Jungho An"
+      ],
+      "link": "https://ojs.aaai.org/index.php/AAAI/article/view/42185",
+      "first_seen": "2026-10-24",
+      "row": [
+        "",
+        "Dynamics-aware planning representation for zero-shot reinforcement learning (student abstract)",
+        "Accept",
+        "Jungho An, Taeyoung Kim, Haeun Kim, Dongsoo Har",
+        "Jungho An",
+        "",
+        "2026",
+        "저널",
+        "Proceedings of the AAAI Conference on Artificial Intelligence",
+        "FALSE",
+        "FALSE",
+        "",
+        "",
+        "",
+        "https://ojs.aaai.org/index.php/AAAI/article/view/42185",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "title": "Robust Slip Detection Using Magnetic Tactile Sensors During Dynamic Robotic Manipulation via Stray Magnetic Fields Compensation",
+      "scholar_url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=sN8h8dwAAAAJ&pagesize=50&sortby=pubdate&citation_for_view=sN8h8dwAAAAJ:UeHWp8X0CEIC",
+      "authors": "Kang-Il Yoon, Jung-Hwan Yang, Soo-Chul Lim",
+      "venue": "IEEE Sensors Journal",
+      "year": 2025,
+      "members": [
+        "Kang-il Yoon"
+      ],
+      "link": "https://ieeexplore.ieee.org/abstract/document/11130548/",
+      "first_seen": "2026-10-24",
+      "row": [
+        "",
+        "Robust Slip Detection Using Magnetic Tactile Sensors During Dynamic Robotic Manipulation via Stray Magnetic Fields Compensation",
+        "Accept",
+        "Kang-Il Yoon, Jung-Hwan Yang, Soo-Chul Lim",
+        "Kang-Il Yoon",
+        "",
+        "2025",
+        "저널",
+        "IEEE Sensors Journal",
+        "FALSE",
+        "FALSE",
+        "",
+        "",
+        "",
+        "https://ieeexplore.ieee.org/abstract/document/11130548/",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "title": "Real-to-sim high-resolution cloth modeling: Physical parameter optimization using particle-based simulation with robot manipulation data",
+      "scholar_url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=sN8h8dwAAAAJ&pagesize=50&sortby=pubdate&citation_for_view=sN8h8dwAAAAJ:IjCSPb-OGe4C",
+      "authors": "Soo-Chul Lim Kang-il Yoon",
+      "venue": "Journal of Computational Design and Engineering",
+      "year": 2025,
+      "members": [
+        "Kang-il Yoon"
+      ],
+      "link": "https://academic.oup.com/jcde/article-abstract/12/8/29/8206149",
+      "first_seen": "2026-10-24",
+      "row": [
+        "",
+        "Real-to-sim high-resolution cloth modeling: Physical parameter optimization using particle-based simulation with robot manipulation data",
+        "Accept",
+        "Soo-Chul Lim Kang-il Yoon",
+        "Soo-Chul Lim Kang-il Yoon",
+        "",
+        "2025",
+        "저널",
+        "Journal of Computational Design and Engineering",
+        "FALSE",
+        "FALSE",
+        "",
+        "",
+        "",
+        "https://academic.oup.com/jcde/article-abstract/12/8/29/8206149",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "title": "Estimating indoor tile friction coefficient using visual information",
+      "scholar_url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=sN8h8dwAAAAJ&pagesize=50&sortby=pubdate&citation_for_view=sN8h8dwAAAAJ:9yKSN-GCB0IC",
+      "authors": "Jung‐Hwan Yang, Kang-Il Yoon, Seunghyeon Ha, Andy Hong, Soo‐Chul Lim",
+      "venue": "Journal of Computational Design and Engineering",
+      "year": 2025,
+      "members": [
+        "Kang-il Yoon"
+      ],
+      "link": "https://academic.oup.com/jcde/article-abstract/12/1/331/7954144",
+      "first_seen": "2026-10-24",
+      "row": [
+        "",
+        "Estimating indoor tile friction coefficient using visual information",
+        "Accept",
+        "Jung‐Hwan Yang, Kang-Il Yoon, Seunghyeon Ha, Andy Hong, Soo‐Chul Lim",
+        "Jung‐Hwan Yang",
+        "",
+        "2025",
+        "저널",
+        "Journal of Computational Design and Engineering",
+        "FALSE",
+        "FALSE",
+        "",
+        "",
+        "",
+        "https://academic.oup.com/jcde/article-abstract/12/1/331/7954144",
+        "",
+        "",
+        ""
+      ]
+    },
     {
       "title": "Not All Task Vectors Need Equal Rank: Energy-Proportional Allocation for Model Merging",
       "scholar_url": "https://scholar.google.com/citations?view_op=view_citation&hl=en&user=VyOx3aAAAAAJ&pagesize=50&sortby=pubdate&citation_for_view=VyOx3aAAAAAJ:_kc_bZDykSQC",
